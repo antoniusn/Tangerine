@@ -40,7 +40,7 @@ cp config.defaults.sh config.sh
 
 Now visit your Tangerine-server installation at the IP address or hostname of your installation.
 
-If your server restarts or the container stops, you can later run the `./start.sh` script in the Tangerine-server folder. To upgrade your server, run the `./upgrade.sh` script. 
+If your server restarts or the container stops, you can later run the `./start.sh` script in the Tangerine-server folder. To upgrade your server, run the `./upgrade.sh` script. Note that if you update environment variables in `config.sh`, they will not be propogated to the `settings` doc in each group so certain paths will break. See [issue #114](https://github.com/Tangerine-Community/Tangerine/issues/114) for the status of this. 
 
 ## Develop on Tangerine 
 To develop on Mac or Windows, this project requires a working knowledge of `docker` and `docker-machine`. While you can issue Docker commands from Windows or Mac, Docker containers cannot run directly run on those platforms (yet) so it requires connecting to another machine running Linux using the `docker-machine` command. To learn Docker, check out the [self-paced training on docker.io](https://training.docker.com/self-paced-training). 
@@ -59,6 +59,8 @@ cp config.defaults.sh
 # Edit config.sh to your desired setting. If you are using Docker Machine, make sure to set the T_HOST_NAME to the IP address of your Virtual Machine.
 ./build-and-run.sh
 ```
+
+Tip: To speed up your first run of `build-and-run.sh`, take advantage of Docker Cache by downloading an already built image and copy it to the `tangerine/tangerine:local` tag that the `build-and-run.sh` script will build. Ex. `docker pull tangerine/tangerine:master; docker tag tangerine/tangerine:master tangerine/tangerine:local`. Note that this only works with Docker 1.9 and earlier because in newer versions of Docker, `docker pull` [does not pull the Docker Cache](https://github.com/docker/docker/issues/20316)..  
 
 Now that you've built and run an image tagged as `local`, view your server from a web browser to confirm it is working. When you visit the site in a web browser, you will see output to your terminal indicating there is activity on the server. 
 
@@ -94,7 +96,7 @@ Please note: you must create a new group when you wish to view your changes.
 
 Be sure to commit your code ASAP. Once your container is gone; any uncommitted changes will also be gone.
 
-# Configuring the client app
+## Configuring the client app
 
 As mentioned above, you should develope client here and copy to docker-tangerine-tree. If you are running docker-tangerine-tree 
 on your own server, you must configure the relevant urls in the Content-Security-Policy section of index.html:
@@ -107,4 +109,29 @@ on your own server, you must configure the relevant urls in the Content-Security
           img-src 'self' data:;
           connect-src 'self' https://*.tangerinecentral.org data: blob: filesystem:">
 ````
+
+
+## Network services map of Tangerine
+
+Tangerine consists of various network services running on their respective ports and some staticly mounted directories for things like single page apps. Nginx is in front and handles most of the mapping of routes to specific ports. The `robbert` codebase is an acception as it is given a wildcard route from Nginx to handle whatever routes it cares to handle. In the future, we would like to consolidate all route handling into robbert. But for now, the network map looks like this. 
+
+```
+browser -- nginx on port 80 -\
+                             |
+                              \_`/*` -- wildcard route that is the `./robbert` codebase, a node app running on port xxx
+                             |              |
+                             |              \_ `/robbert/*` -- Routes for admin functionalities like creating new groups                                                                      
+                             |              |
+                             |              \_ `/app/:groupId/*` is a static content route that points to `./editor/app/*` codebase
+                             |              |
+                             |              \_ `/client/*` is a static content route that points to `./client/app/*` codebase
+                             |                                                          
+                              \_`/tree` is the `./tree` codebase, a node app running on port xxx      
+                             |
+                              \_`/_csv` is the `./brockman` codebase, a ruby app on port 3141
+                             |
+                              \_ `/_cors_bulk_docs` is the `./decompressor` codebase, a node app running on port 2989
+                             |
+                              \_ `/db/*` is couchdb on port 5984
+```
 
