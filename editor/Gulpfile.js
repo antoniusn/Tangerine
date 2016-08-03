@@ -356,6 +356,13 @@ conf.fileOrder = [
   'StudentListElementView',
   'StudentEditView',
 
+  'Critique',
+  'Critiques',
+  'Feedback',
+  'FeedbackEditView',
+  'FeedbackRunView',
+  'FeedbackTripsView',
+
   'User',
   'Users',
   'TabletUser',
