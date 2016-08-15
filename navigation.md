@@ -1,4 +1,4 @@
-# Tangerine Documentation
+# Tangerine Technical Documentation
 
 [Issue Queue](https://github.com/Tangerine-Community/Tangerine/issues)
 [Code](https://github.com/Tangerine-Community/Tangerine)
